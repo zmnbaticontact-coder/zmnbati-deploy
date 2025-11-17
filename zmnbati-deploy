@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ZMNBati Rénovation — Devis gratuit (Nancy, Metz, Thionville)</title>
+  <meta name="description" content="ZMNBati Rénovation — Rénovation cuisine, salle de bain, isolation. Devis gratuit sous 48h dans la région Lorraine (Nancy, Metz, Thionville)." />
+  <style>
+    :root{--brand:#0d6efd;--muted:#666}
+    body{font-family:Inter,Arial,Helvetica,sans-serif;background:#f4f6fb;margin:0;color:#222}
+    .container{max-width:920px;margin:28px auto;padding:22px;background:#fff;border-radius:10px;box-shadow:0 10px 30px rgba(15,20,30,.06)}
+    header{display:flex;align-items:center;gap:14px}
+    header img{height:56px;border-radius:6px}
+    h1{margin:8px 0 6px;font-size:24px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    input,select,textarea{padding:10px;border:1px solid #e2e6ef;border-radius:6px;font-size:14px}
+    textarea{min-height:100px}
+    .full{grid-column:1/3}
+    .btn{background:var(--brand);color:#fff;padding:12px;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+    .small{font-size:13px;color:var(--muted)}
+    footer{font-size:12px;color:#9aa0b4;margin-top:14px}
+    .city-pill{display:inline-block;background:#eef4ff;color:var(--brand);padding:6px 10px;border-radius:999px;margin-right:8px;font-weight:600}
+    @media(max-width:680px){form{grid-template-columns:1fr}.full{grid-column:1/2}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/assets/logo-placeholder.png" alt="ZMNBati Rénovation logo" />
+      <div>
+        <div class="small">ZMNBati Rénovation — Lorraine</div>
+        <div class="small">Tel: +33 6 12 34 56 78 • contact@zmn-bati.fr</div>
+      </div>
+    </header>
+
+    <h1>Rénovation à Nancy, Metz ou Thionville — Devis gratuit sous 48h</h1>
+    <p class="lead">Cuisine • Salle de bain • Isolation • Rénovation complète — Visite technique gratuite et accompagnement MaPrimeRénov possible selon éligibilité.</p>
+
+    <div style="margin-bottom:12px">
+      <span class="city-pill" data-city="Nancy">Nancy</span>
+      <span class="city-pill" data-city="Metz">Metz</span>
+      <span class="city-pill" data-city="Thionville">Thionville</span>
+    </div>
+
+    <form id="devisForm" class="devis" action="/.netlify/functions/lead" method="post" autocomplete="on">
+      <input name="firstName" type="text" placeholder="Prénom *" required />
+      <input name="lastName" type="text" placeholder="Nom *" required />
+      <input name="phone" type="tel" placeholder="Téléphone (ex: +33612345678) *" required />
+      <input name="email" type="email" placeholder="E‑mail" />
+      <input name="address" type="text" placeholder="Adresse (ou ville) *" required />
+      <select name="serviceType" required>
+        <option value="">Type de travaux *</option>
+        <option value="cuisine">Cuisine</option>
+        <option value="sdb">Salle de bain</option>
+        <option value="isolation">Isolation / Énergétique</option>
+        <option value="complete">Rénovation complète</option>
+        <option value="autre">Autre</option>
+      </select>
+      <input name="budget" type="text" placeholder="Budget approximatif (ex: 8 000 €)" />
+      <textarea name="notes" placeholder="Informations complémentaires / disponibilités" class="full"></textarea>
+
+      <label class="full small">
+        <input type="checkbox" name="consent" required />
+        J’accepte d’être contacté(e) par ZMNBati Rénovation pour répondre à cette demande. Mes données sont traitées conformément au RGPD. Pour exercer vos droits: contact@zmn-bati.fr.
+      </label>
+
+      <!-- Hidden UTM fields appended by JS -->
+      <input class="full btn" type="submit" value="Obtenir mon devis gratuit" />
+      <div class="full small">Nous répondons sous 24–48h. En cas d'urgence: +33 6 12 34 56 78</div>
+    </form>
+
+    <footer>
+      ZMNBati Rénovation — SIRET : 123 456 789 00012 (exemple — remplacez par votre vrai SIRET) — <a href="/privacy.html">Politique de confidentialité</a>
+    </footer>
+  </div>
+
+  <script>
+    // City quick-select
+    document.querySelectorAll('.city-pill').forEach(function(el){
+      el.addEventListener('click', function(){
+        document.querySelector('input[name="address"]').value = el.dataset.city;
+        document.querySelectorAll('.city-pill').forEach(x=>x.style.opacity=0.5);
+        el.style.opacity=1;
+      });
+    });
+
+    // Append UTM hidden inputs if present
+    (function(){
+      function param(name){ var m=location.search.match(new RegExp('[?&]'+name+'=([^&]+)')); return m?decodeURIComponent(m[1].replace(/\+/g,' ')) : '';}
+      var form=document.getElementById('devisForm');
+      ['utm_source','utm_campaign','utm_medium','gclid'].forEach(function(k){
+        var v=param(k);
+        var i=document.createElement('input'); i.type='hidden'; i.name=k; i.value=v||'';
+        form.appendChild(i);
+      });
+    })();
+
+    // Submit via fetch to enable JSON response handling
+    (function(){
+      var form=document.getElementById('devisForm');
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        var data = new FormData(form);
+        var obj = {};
+        data.forEach((v,k)=> obj[k]=v);
+        if(!obj.phone){ alert('Veuillez entrer un numéro de téléphone.'); return; }
+        var btn = form.querySelector('.btn');
+        btn.disabled = true;
+        btn.value = 'Envoi en cours...';
+        fetch(form.action, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(obj)
+        }).then(function(res){ return res.json(); })
+        .then(function(json){
+          if(json && json.ok){
+            btn.value = 'Demande reçue — Merci';
+            window.location.href = '/merci.html';
+          } else {
+            btn.disabled=false;
+            btn.value='Obtenir mon devis gratuit';
+            alert('Erreur lors de l\'envoi. Veuillez réessayer ou appeler +33 6 12 34 56 78.');
+          }
+        }).catch(function(err){
+          console.error(err);
+          btn.disabled=false;
+          btn.value='Obtenir mon devis gratuit';
+          alert('Erreur réseau. Veuillez réessayer.');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
